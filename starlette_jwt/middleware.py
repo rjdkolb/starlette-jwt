@@ -21,11 +21,16 @@ class JWTUser(BaseUser):
 
 class JWTAuthenticationBackend(AuthenticationBackend):
 
-    def __init__(self, secret_key: str, algorithm: str = 'HS256', prefix: str = 'JWT', username_field: str = 'username'):
+    def __init__(self, secret_key: str, algorithm: str = 'HS256', prefix: str = 'JWT', username_field: str = 'username',
+                 audience = None, issuer: str = None, options: dict = {}):
         self.secret_key = secret_key
         self.algorithm = algorithm
         self.prefix = prefix
         self.username_field = username_field
+        self.audience = audience
+        self.issuer = issuer
+        self.options = options
+
 
     @classmethod
     def get_token_from_header(cls, authorization: str, prefix: str):
@@ -50,7 +55,8 @@ class JWTAuthenticationBackend(AuthenticationBackend):
         auth = request.headers["Authorization"]
         token = self.get_token_from_header(authorization=auth, prefix=self.prefix)
         try:
-            payload = jwt.decode(token, key=self.secret_key, algorithms=self.algorithm)
+            payload = jwt.decode(token, key=self.secret_key, algorithms=self.algorithm, audience=self.audience,
+                                 issuer=self.issuer, options=self.options)
         except jwt.InvalidTokenError as e:
             raise AuthenticationError(str(e))
 
